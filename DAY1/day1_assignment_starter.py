@@ -50,9 +50,10 @@ parser = PydanticOutputParser(pydantic_object=ConceptExplanation)
 # - {format_instructions}를 반드시 포함합니다.
 # - human 메시지에는 "설명할 개념: {topic}"을 넣습니다.
 # --------------------------------------------------
-prompt = ChatPromptTemplate.from_template(
-"""AI 개념을 쉽게 설명해 줘.\n{format_instructions}\n설명할 개념: {topic}"""
-)
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "당신은 AI 개념을 쉽게 설명하는 전문가입니다.\n{format_instructions}"),
+    ("human", "설명할 개념: {topic}"),
+])
 
 # --------------------------------------------------
 # TODO 3. ChatOpenAI 모델을 만드세요.
@@ -60,12 +61,7 @@ prompt = ChatPromptTemplate.from_template(
 # - model은 "gpt-4o-mini"를 사용합니다.
 # - temperature는 0.2로 설정합니다.
 # --------------------------------------------------
-model = init_chat_model(
-"openai:gpt-4o-mini",
-temperature=0.2,
-timeout=300,
-max_tokens=16384,
-)
+model = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
 
 # --------------------------------------------------
 # TODO 4. chain을 만드세요.
