@@ -46,13 +46,13 @@ def split_documents(documents):
     return splitter.split_documents(documents)
 
 
-def index_document(file_path: Path, title: str | None = None) -> dict:
+def index_document(file_path: Path, user_id: int, title: str | None = None) -> dict:
     """파일을 읽고 chunk/embedding을 생성해 기존 PostgreSQL 테이블에 저장합니다.
 
     TODO:
     1. load_file_as_documents(file_path)로 문서를 읽습니다.
     2. split_documents()로 chunk를 만듭니다.
-    3. rag_documents에 문서 정보를 저장합니다.
+    3. rag_documents에 문서 정보를 저장합니다 (user_id 포함).
     4. 각 chunk를 rag_chunks에 저장합니다.
     5. 각 chunk 본문을 embedding합니다.
     6. rag_embeddings에 vector를 저장합니다.
@@ -71,6 +71,7 @@ def index_document(file_path: Path, title: str | None = None) -> dict:
     chunks = split_documents(documents)
 
     document_id = insert_document(
+        user_id=user_id,
         title=title,
         file_name=file_path.name,
         file_type=get_file_type(file_path),

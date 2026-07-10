@@ -39,6 +39,12 @@ class Settings:
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "")
 
+    # JWT_SECRET_KEY는 반드시 .env에서 설정해야 합니다.
+    # 여기 fallback 값은 로컬 개발 편의용일 뿐이며, 실서비스에서는 절대 쓰면 안 됩니다.
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "dev-only-insecure-secret")
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))
+
     def missing_required_env(self) -> list[str]:
         required = {
             "OPENAI_API_KEY": self.OPENAI_API_KEY,

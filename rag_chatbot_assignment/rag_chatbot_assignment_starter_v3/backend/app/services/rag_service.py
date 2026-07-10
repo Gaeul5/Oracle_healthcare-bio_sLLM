@@ -3,8 +3,10 @@ from __future__ import annotations
 from backend.app.core.config import settings
 
 
-def search_similar_chunks(question: str, top_k: int = 4) -> list[dict]:
-    """질문과 유사한 chunk를 PostgreSQL pgvector로 검색합니다.
+def search_similar_chunks(
+    question: str, user_id: int, top_k: int = 4, document_id: int | None = None
+) -> list[dict]:
+    """질문과 유사한 chunk를 PostgreSQL pgvector로 검색합니다. user_id가 소유한 문서에서만 검색합니다.
 
     TODO:
     1. 질문을 embedding합니다.
@@ -19,7 +21,9 @@ def search_similar_chunks(question: str, top_k: int = 4) -> list[dict]:
 
     # 2. repository.search_similar_chunks()를 호출합니다.
     from backend.app.db.repository import search_similar_chunks
-    rows = search_similar_chunks(query_embedding, embedding_model, top_k)
+    rows = search_similar_chunks(
+        query_embedding, embedding_model, top_k, user_id=user_id, document_id=document_id
+    )
 
     # 3. 검색 결과 list[dict]를 반환합니다.
     return rows
@@ -94,7 +98,7 @@ def generate_answer(question: str, context: str) -> str:
 
    
 
-def ask(question: str, top_k: int = 4) -> dict:
+def ask(question: str, user_id: int, top_k: int = 4) -> dict:
     """RAG 전체 흐름을 실행합니다.
 
     TODO:
@@ -106,7 +110,7 @@ def ask(question: str, top_k: int = 4) -> dict:
     6. {"answer": answer, "sources": sources} 반환
     """
 
-    search_results = search_similar_chunks(question, top_k)
+    search_results = search_similar_chunks(question, user_id=user_id, top_k=top_k)
     if not search_results:
         return {"answer": "죄송합니다. 관련된 정보를 찾을 수 없습니다.", "sources": []}
     

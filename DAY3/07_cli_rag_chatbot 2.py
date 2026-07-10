@@ -4,10 +4,12 @@ from pathlib import Path
 import psycopg
 from psycopg.rows import dict_row
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
+load_dotenv()
 
 TOP_K = 4
 
@@ -18,6 +20,10 @@ SYSTEM_PROMPT = """너는 문서 기반으로 답변하는 RAG 챗봇입니다.
 2. context에 없는 내용은 추측하지 말고 모른다고 말하세요.
 3. 답변은 한국어로 작성하세요.
 """
+
+
+class RagAnswer(BaseModel):
+    answer: str = Field(description="context를 근거로 작성한 한국어 답변")
 
 
 def env(name, default=""):
@@ -39,34 +45,35 @@ def to_pgvector(vector):
     return "[" + ",".join(str(x) for x in vector) + "]"
 
 
-def retrieve_documents(question):
-    """TODO 1: 질문을 embedding하고 DB에서 가까운 chunk를 검색하세요."""
-
-    # 1. embedding 모델 준비
+def search_chunks(question):
     embedding_model = env("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
     embeddings = OpenAIEmbeddings(model=embedding_model)
+    query_vector = embeddings.embed_query(question)
+    query_vector_text = to_pgvector(query_vector)
 
-    # TODO: 질문을 embedding하세요.
-    # query_vector = ...
-    # query_vector_text = to_pgvector(query_vector)
-
-    # 2. DB 연결
     conn = connect_db()
-
-    # TODO: rag_embeddings, rag_chunks, rag_documents를 JOIN해서 vector 검색 SQL을 실행하세요.
-    # 힌트: ORDER BY e.embedding <=> %s::vector LIMIT %s
-    # 결과 컬럼: file_name, chunk_index, page_number, content, distance
-
-    # with conn.cursor() as cur:
-    #     cur.execute("""
-    #         SELECT ...
-    #     """, (...))
-    #     results = cur.fetchall()
-
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+                d.file_name,
+                c.chunk_index,
+                c.page_number,
+                c.content,
+                e.embedding <=> %s::vector AS distance
+            FROM rag_embeddings e
+            JOIN rag_chunks c ON e.chunk_id = c.id
+            JOIN rag_documents d ON c.document_id = d.id
+            WHERE d.file_type = 'pdf'
+              AND e.embedding_model = %s
+            ORDER BY e.embedding <=> %s::vector
+            LIMIT %s
+            """,
+            (query_vector_text, embedding_model, query_vector_text, TOP_K),
+        )
+        results = cur.fetchall()
     conn.close()
-
-    # TODO: results를 반환하세요.
-    raise NotImplementedError("retrieve_documents()의 TODO를 완성하세요.")
+    return results
 
 
 def format_context(results):
@@ -78,20 +85,40 @@ def format_context(results):
 
 
 def generate_answer(question, results):
-    """TODO 2: 검색 결과를 context로 만들고 LLM에게 답변을 요청하세요."""
+    context = format_context(results)
+    parser = PydanticOutputParser(pydantic_object=RagAnswer)
 
-    # TODO: 검색 결과를 context로 변환하세요.
-    # context = ...
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                SYSTEM_PROMPT
+                + "\n반드시 아래 출력 형식을 지키세요.\n{format_instructions}",
+            ),
+            (
+                "human",
+                """아래 context만 참고해서 질문에 답변하세요.
 
-    # TODO: user_prompt를 만드세요.
-    # user_prompt = f"""..."""
+[context]
+{context}
 
-    # TODO: ChatOpenAI를 만들고 invoke하세요.
-    # llm = ChatOpenAI(...)
-    # response = llm.invoke([...])
+[질문]
+{question}
+""",
+            ),
+        ]
+    )
 
-    # TODO: response.content를 반환하세요.
-    raise NotImplementedError("generate_answer()의 TODO를 완성하세요.")
+    llm = ChatOpenAI(model=env("OPENAI_MODEL", "gpt-4o-mini"), temperature=0)
+    chain = prompt | llm | parser
+    result = chain.invoke(
+        {
+            "context": context,
+            "question": question,
+            "format_instructions": parser.get_format_instructions(),
+        }
+    )
+    return result.answer
 
 
 def print_sources(results):
@@ -100,7 +127,7 @@ def print_sources(results):
         print(f"{i}. {row['file_name']} / p.{row['page_number']} / distance={row['distance']:.4f}")
 
 
-print("Day 3 과제: CLI RAG 챗봇")
+print("Day 3 CLI RAG 챗봇")
 print("종료하려면 quit, exit, 종료 중 하나를 입력하세요.\n")
 
 while True:
@@ -114,11 +141,8 @@ while True:
         break
 
     try:
-        results = retrieve_documents(question)
+        results = search_chunks(question)
         answer = generate_answer(question, results)
-    except NotImplementedError as e:
-        print(e)
-        break
     except Exception as e:
         print("오류가 발생했습니다.")
         print(e)

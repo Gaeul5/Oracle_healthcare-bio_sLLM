@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
+from backend.app.core.deps import get_current_user_id
 from backend.app.db import repository
 from backend.app.services import document_service
 
@@ -9,32 +10,25 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 
 
 @router.get("")
-def get_documents():
-    """문서 목록을 조회합니다.
-
-    TODO:
-    1. backend.app.db.repository.find_all_documents()를 호출합니다.
-    2. {"documents": documents} 형태로 반환합니다.
-    """
-    documents = repository.find_all_documents()
+def get_documents(current_user_id: int = Depends(get_current_user_id)):
+    """현재 로그인한 사용자의 문서 목록을 조회합니다."""
+    documents = repository.find_all_documents(current_user_id)
 
     return {"documents": documents}
 
 
 @router.post("")
-def upload_document(title: str = Form(""), file: UploadFile = File(...)):
-    """문서를 업로드하고 indexing합니다.
-
-    TODO:
-    1. document_service.save_upload_file(file)로 파일을 저장합니다.
-    2. document_service.index_document(saved_path, title)로 RAG 저장을 수행합니다.
-    3. 결과 dict를 반환합니다.
-    """
+def upload_document(
+    title: str = Form(""),
+    file: UploadFile = File(...),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    """문서를 업로드하고 indexing합니다. 업로드한 사람의 user_id로 저장됩니다."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="파일명이 비어 있습니다.")
 
     saved_path = document_service.save_upload_file(file)
-    result = document_service.index_document(saved_path, title)
+    result = document_service.index_document(saved_path, user_id=current_user_id, title=title)
 
     return {
         "message": "uploaded",
@@ -45,14 +39,14 @@ def upload_document(title: str = Form(""), file: UploadFile = File(...)):
 
 
 @router.delete("/{document_id}")
-def delete_document(document_id: int):
-    """문서를 삭제합니다.
+def delete_document(document_id: int, current_user_id: int = Depends(get_current_user_id)):
+    """현재 로그인한 사용자가 소유한 문서만 삭제합니다.
 
     TODO:
-    1. repository.delete_document(document_id)를 호출합니다.
     2. uploads 폴더에 저장된 원본 파일도 삭제할지 결정합니다.
-    3. 삭제 결과를 반환합니다.
     """
-    repository.delete_document(document_id)
+    deleted = repository.delete_document(document_id, current_user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="문서를 찾을 수 없습니다.")
 
     return {"message": "deleted", "document_id": document_id}

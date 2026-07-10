@@ -45,7 +45,7 @@ nav {
 }
 
 .container {
-  max-width: 1040px;
+  max-width: 1320px;
   margin: 32px auto;
   padding: 0 20px;
 }
@@ -57,8 +57,10 @@ nav {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
+/* !important: 이 유틸리티 클래스는 뒤에 나오는 다른 규칙(예: .auth-form의 display:flex,
+   .user-info의 display:flex)보다 항상 우선해서 확실히 숨겨야 합니다. */
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .view-title h1 {
@@ -74,36 +76,67 @@ nav {
   min-height: 420px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 16px;
-  background: #f9fafb;
+  padding: 18px 16px;
+  background: #ffffff;
   overflow-y: auto;
 }
 
 .message {
-  max-width: 78%;
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  line-height: 1.55;
+  max-width: 62%;
+  width: fit-content;
+  margin-bottom: 8px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  line-height: 1.4;
+  font-size: 14.5px;
+  word-wrap: break-word;
 }
 
 .message.user {
   margin-left: auto;
-  background: #2563eb;
+  background: #007aff;
   color: white;
+  border-bottom-right-radius: 6px;
 }
 
 .message.bot {
   margin-right: auto;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: #e9e9eb;
+  color: #111827;
+  border-bottom-left-radius: 6px;
 }
 
-.message-role {
-  font-size: 12px;
+.message p {
+  margin: 0 0 6px;
+}
+
+.message p:last-child {
+  margin-bottom: 0;
+}
+
+.message ul,
+.message ol {
+  margin: 2px 0 6px;
+  padding-left: 20px;
+}
+
+.message li {
+  margin-bottom: 2px;
+}
+
+.message strong {
   font-weight: 700;
-  margin-bottom: 4px;
-  opacity: 0.75;
+}
+
+/* iMessage처럼 말풍선 위에 "사용자"/"챗봇" 라벨을 따로 띄우지 않고,
+   정렬(좌/우)과 색으로만 구분합니다. */
+.message-role {
+  display: none;
+}
+
+.message-extra {
+  max-width: 70%;
+  margin: -2px 0 14px;
 }
 
 .chat-form,
@@ -138,9 +171,15 @@ button[type="submit"]:hover,
 }
 
 .sources {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.sources strong {
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .source-card {
@@ -149,6 +188,231 @@ button[type="submit"]:hover,
   border-radius: 8px;
   padding: 10px;
   margin-top: 8px;
+}
+
+.tools-used {
+  margin-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tool-badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.tool-badge.failed {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* ============================================================
+   Auth (로그인/회원가입)
+   ============================================================ */
+#auth-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+  margin: 24px auto 0;
+}
+
+.auth-form input {
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+}
+
+.auth-form button[type="submit"] {
+  margin-top: 4px;
+  border-radius: 14px;
+}
+
+.auth-switch {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.auth-switch a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+#auth-status {
+  font-size: 12px;
+  min-height: 14px;
+}
+
+#auth-status.error {
+  color: #dc2626;
+}
+
+#auth-status.shake {
+  animation: shake 0.4s;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-size: 14px;
+}
+
+/* ============================================================
+   채팅방 사이드바 레이아웃
+   ============================================================ */
+.chat-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.session-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e5e7eb;
+  padding-right: 16px;
+  transition: width 0.2s ease, padding-right 0.2s ease, border-color 0.2s ease;
+}
+
+.session-sidebar.collapsed {
+  width: 32px;
+  padding-right: 0;
+  border-right-color: transparent;
+}
+
+.session-sidebar.collapsed .session-sidebar-content {
+  display: none;
+}
+
+.toggle-sidebar-button {
+  align-self: flex-start;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.toggle-sidebar-button:hover {
+  background: #f3f4f6;
+}
+
+.new-session-button {
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed #9ca3af;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.new-session-button:hover {
+  background: #f3f4f6;
+}
+
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.session-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.session-item:hover {
+  background: #f3f4f6;
+}
+
+.session-item.active {
+  background: #111827;
+  color: white;
+}
+
+.chat-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-view-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-controls {
+  display: flex;
+  gap: 8px;
+  margin: 10px 2px 6px;
+}
+
+.mode-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 30px 9px 14px;
+  background-color: #111827;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.mode-select option {
+  color: #111827;
+  background-color: white;
+  font-family: Arial, "Noto Sans KR", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.mode-select:hover {
+  background-color: #374151;
 }
 
 .status-text {

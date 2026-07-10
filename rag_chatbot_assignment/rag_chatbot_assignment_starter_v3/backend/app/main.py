@@ -6,11 +6,12 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.app.core.config import settings
 from backend.app.db.connection import check_database_connection
-from backend.app.routers import chat, documents
+from backend.app.routers import auth, chat, documents
 
 
 app = FastAPI(title="LangChain RAG Chatbot Starter")
 
+app.include_router(auth.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 
