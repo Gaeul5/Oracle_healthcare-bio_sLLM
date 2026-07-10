@@ -101,13 +101,15 @@ function renderMarkdownLite(rawText) {
       return;
     }
 
-    flushList();
-
     if (line === "") {
+      // 목록 항목 사이의 빈 줄은 목록을 끝내지 않고 그냥 무시합니다.
+      // (그래야 1./2./3.이 항목마다 새로 시작되지 않고 이어집니다)
+      if (listTag) return;
       flushParagraph();
       return;
     }
 
+    flushList();
     paragraphLines.push(formatInline(line));
   });
 
@@ -366,10 +368,10 @@ async function selectSession(sessionId, title) {
   try {
     const data = await fetchSessionMessages(sessionId);
     (data.messages || []).forEach((message) => {
-      appendMessage(message.role, message.content, message.tools || [], message.sources || []);
+      appendMessage(message.role, message.content, message.tools || [], message.sources || [], true);
     });
   } catch (error) {
-    appendMessage("assistant", error.message);
+    appendMessage("assistant", error.message, [], [], true);
   }
 }
 
@@ -389,35 +391,86 @@ newSessionButton.addEventListener("click", async () => {
 // ============================================================
 // 채팅 메시지 렌더링
 // ============================================================
-function appendMessage(role, text, tools = [], sources = []) {
+// text를 조금씩 늘려가며 element에 채워 넣는 필자(타이핑) 효과입니다.
+// 매 tick마다 지금까지 나온 부분을 다시 마크다운으로 렌더링하기 때문에,
+// **굵게** 처럼 닫는 기호까지 타이핑되는 순간 바로 서식이 적용됩니다.
+function typewriterReveal(element, text, onDone) {
+  const CHARS_PER_TICK = 2;
+  const TICK_MS = 15;
+  let shown = 0;
+
+  function tick() {
+    shown = Math.min(text.length, shown + CHARS_PER_TICK);
+    element.innerHTML = renderMarkdownLite(text.slice(0, shown));
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+
+    if (shown < text.length) {
+      setTimeout(tick, TICK_MS);
+    } else {
+      onDone();
+    }
+  }
+
+  tick();
+}
+
+// role/text 외에 instant=true를 주면(과거 대화 불러오기, 에러 메시지 등)
+// 타이핑 효과 없이 바로 렌더링합니다.
+function appendMessage(role, text, tools = [], sources = [], instant = false) {
   const isUser = role === "user";
 
   // 말풍선은 짧은 텍스트만 담당합니다 (iMessage 스타일).
-  // 사용자 입력은 그대로 텍스트로, 챗봇 답변은 마크다운(굵게/문단/목록)을 해석해서 보여줍니다.
   const bubble = document.createElement("div");
   bubble.className = `message ${isUser ? "user" : "bot"}`;
-  if (isUser) {
-    bubble.textContent = text;
-  } else {
-    bubble.innerHTML = renderMarkdownLite(text);
-  }
   chatMessagesEl.appendChild(bubble);
 
-  // Tool 사용 내역/출처는 말풍선 안에 끼워 넣지 않고 그 아래 별도 블록으로 붙입니다.
-  if (!isUser && (tools.length > 0 || sources.length > 0)) {
-    const extra = document.createElement("div");
-    extra.className = "message-extra";
+  function appendExtra() {
+    // Tool 사용 내역/출처는 말풍선 안에 끼워 넣지 않고 그 아래 별도 블록으로 붙입니다.
+    if (!isUser && (tools.length > 0 || sources.length > 0)) {
+      const extra = document.createElement("div");
+      extra.className = "message-extra";
 
-    if (tools.length > 0) {
-      extra.appendChild(renderToolBadges(tools));
-    }
-    if (sources.length > 0) {
-      extra.appendChild(renderSources(sources));
-    }
+      if (tools.length > 0) {
+        extra.appendChild(renderToolBadges(tools));
+      }
+      if (sources.length > 0) {
+        extra.appendChild(renderSources(sources));
+      }
 
-    chatMessagesEl.appendChild(extra);
+      chatMessagesEl.appendChild(extra);
+    }
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
   }
+
+  if (isUser) {
+    bubble.textContent = text;
+    appendExtra();
+    return;
+  }
+
+  if (instant) {
+    bubble.innerHTML = renderMarkdownLite(text);
+    appendExtra();
+    return;
+  }
+
+  // 챗봇 답변만: 한 글자씩 채우면서 매 순간 마크다운을 다시 적용합니다.
+  typewriterReveal(bubble, text, appendExtra);
+}
+
+function showTypingIndicator() {
+  const bubble = document.createElement("div");
+  bubble.className = "message bot typing-bubble";
+  bubble.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+  chatMessagesEl.appendChild(bubble);
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+  return bubble;
+}
+
+function hideTypingIndicator(bubble) {
+  if (bubble && bubble.parentNode) {
+    bubble.parentNode.removeChild(bubble);
+  }
 }
 
 function renderToolBadges(tools) {
@@ -481,13 +534,28 @@ async function sendMessage(sessionId, message, mode, explanationLevel) {
 chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const message = chatInput.value.trim();
-  if (!message || !currentSessionId) return;
+  if (!message) return;
+
+  // 선택된 채팅방이 없으면 메시지를 보내기 전에 새 채팅방을 먼저 만듭니다.
+  if (!currentSessionId) {
+    try {
+      const session = await createSession();
+      await loadSessions();
+      await selectSession(session.session_id, session.title);
+    } catch (error) {
+      appendMessage("assistant", error.message, [], [], true);
+      return;
+    }
+  }
 
   appendMessage("user", message);
   chatInput.value = "";
 
+  const typingBubble = showTypingIndicator();
+
   try {
     const data = await sendMessage(currentSessionId, message, getChatMode(), getExplanationLevel());
+    hideTypingIndicator(typingBubble);
     appendMessage("assistant", data.answer, data.tools || [], data.sources || []);
     await loadSessions();
     if (currentSessionId) {
@@ -498,7 +566,8 @@ chatForm.addEventListener("submit", async (event) => {
       }
     }
   } catch (error) {
-    appendMessage("assistant", error.message);
+    hideTypingIndicator(typingBubble);
+    appendMessage("assistant", error.message, [], [], true);
   }
 });
 
