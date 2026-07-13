@@ -1,0 +1,33 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	prepare(prepare)
+	merge(merge)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> prepare;
+	news_subgraph\3avalidate_news --> merge;
+	paper_subgraph\3avalidate_paper --> merge;
+	prepare --> news_subgraph\3asearch_news;
+	prepare --> paper_subgraph\3asearch_papers;
+	merge --> __end__;
+	subgraph news_subgraph
+	news_subgraph\3asearch_news(search_news)
+	news_subgraph\3asummarize_news(summarize_news)
+	news_subgraph\3avalidate_news(validate_news)
+	news_subgraph\3asearch_news --> news_subgraph\3asummarize_news;
+	news_subgraph\3asummarize_news --> news_subgraph\3avalidate_news;
+	end
+	subgraph paper_subgraph
+	paper_subgraph\3asearch_papers(search_papers)
+	paper_subgraph\3asummarize_papers(summarize_papers)
+	paper_subgraph\3avalidate_paper(validate_paper)
+	paper_subgraph\3asearch_papers --> paper_subgraph\3asummarize_papers;
+	paper_subgraph\3asummarize_papers --> paper_subgraph\3avalidate_paper;
+	end
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

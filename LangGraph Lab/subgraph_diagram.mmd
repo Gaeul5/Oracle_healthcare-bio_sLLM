@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	prepare(prepare)
+	finish(finish)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> prepare;
+	child_graph\3agenerate_answer --> finish;
+	prepare --> child_graph\3aanalyze_request;
+	finish --> __end__;
+	subgraph child_graph
+	child_graph\3aanalyze_request(analyze_request)
+	child_graph\3agenerate_answer(generate_answer)
+	child_graph\3aanalyze_request --> child_graph\3agenerate_answer;
+	end
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

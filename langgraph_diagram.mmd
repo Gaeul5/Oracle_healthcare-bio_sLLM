@@ -1,0 +1,15 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	adder_node(adder_node)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> adder_node;
+	adder_node -. &nbsp;end_graph&nbsp; .-> __end__;
+	adder_node -. &nbsp;continue_adding&nbsp; .-> adder_node;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
