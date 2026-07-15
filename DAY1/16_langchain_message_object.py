@@ -5,7 +5,7 @@ from langchain.messages import HumanMessage, AIMessage, SystemMessage
 load_dotenv()
 # 모덜 설정 및 구성
 model = init_chat_model(
-"openai:gpt-5.4-mini",
+"openai:gpt-4.0-mini",
 temperature=0.5,
 timeout=300,
 max_tokens=25000,
