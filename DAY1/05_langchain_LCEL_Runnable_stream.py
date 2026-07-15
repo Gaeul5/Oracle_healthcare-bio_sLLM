@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 # 1. 체인 구성 (이 체인 자체가 하나의 Runnable)
 prompt = ChatPromptTemplate.from_template("{framework}는 어떤 특징을 가지고 있어?")
-model = ChatOpenAI(model="gpt-5.4-mini")
+model = ChatOpenAI(model="gpt-4.0-mini")
 parser = StrOutputParser()
 chain = prompt | model | parser
 # 'stream'을 사용하여 체인 실행
