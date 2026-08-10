@@ -59,14 +59,15 @@ R3_TEACHER_PROMPT = f"""{TASK}
 
 {RULES}
 Output one block per adverse drug event, using exactly these fields.
-Leave a field as "not stated" if the text does not say.
+For onset, after_stopping, after_restarting, and severity, answer in a full
+sentence. Write "Not stated." if the text does not say.
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
-onset: <when it started after taking the drug>
-after_stopping: <what happened when the drug was stopped>
-after_restarting: <what happened when the drug was taken again>
-severity: <mild / moderate / severe / not stated>
+onset: <a full sentence on when the event started after taking the drug>
+after_stopping: <a full sentence on what happened when the drug was stopped>
+after_restarting: <a full sentence on what happened when the drug was taken again>
+severity: <a full sentence stating whether the event was mild, moderate, or severe, and why>
 
 Text:
 {{text}}
@@ -77,15 +78,15 @@ R4_TEACHER_PROMPT = f"""{TASK}
 
 {RULES}
 Output one block per adverse drug event, using exactly these fields.
-Leave a field as "not stated" if the text does not say.
-End each block with a one-sentence judgement.
+For onset, after_stopping, after_restarting, severity, and judgement, answer
+in a full sentence. Write "Not stated." if the text does not say.
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
-onset: <when it started after taking the drug>
-after_stopping: <what happened when the drug was stopped>
-after_restarting: <what happened when the drug was taken again>
-severity: <mild / moderate / severe / not stated>
+onset: <a full sentence on when the event started after taking the drug>
+after_stopping: <a full sentence on what happened when the drug was stopped>
+after_restarting: <a full sentence on what happened when the drug was taken again>
+severity: <a full sentence stating whether the event was mild, moderate, or severe, and why>
 judgement: <one sentence on how clearly the drug caused this event>
 
 Text:
