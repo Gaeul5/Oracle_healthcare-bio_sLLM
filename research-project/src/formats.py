@@ -60,9 +60,11 @@ R3_TEACHER_PROMPT = f"""{TASK}
 {RULES}
 Output one block per adverse drug event, using exactly these fields.
 For onset, after_stopping, after_restarting, and severity, always answer in
-a full sentence. If the text does not say, do not just write "not stated" —
-write one full sentence explicitly stating that the text does not mention
-it (for example: "The text does not say when the nausea started.").
+one or two full sentences. If the text does not say, do not just write
+"not stated" — write one or two full sentences explicitly stating that the
+text does not mention it and what would need to be present for it to be
+answerable (for example: "The text does not say when the nausea started. "
+"There is no timestamp or day count near the mention of nausea.").
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
@@ -81,11 +83,13 @@ R4_TEACHER_PROMPT = f"""{TASK}
 
 {RULES}
 Output one block per adverse drug event, using exactly these fields.
-For onset, after_stopping, after_restarting, severity, and judgement, always
-answer in a full sentence. If the text does not say, do not just write
-"not stated" — write one full sentence explicitly stating that the text
-does not mention it (for example: "The text does not say when the nausea
-started.").
+For onset, after_stopping, after_restarting, and severity, always answer in
+one or two full sentences. If the text does not say, do not just write
+"not stated" — write one or two full sentences explicitly stating that the
+text does not mention it and what would need to be present for it to be
+answerable (for example: "The text does not say when the nausea started. "
+"There is no timestamp or day count near the mention of nausea."). judgement
+is always exactly one sentence.
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
