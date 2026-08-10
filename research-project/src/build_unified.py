@@ -258,7 +258,7 @@ def main():
     df["_n"] = df.text.map(norm_text)
     df["_p"] = df.corpus.map(prio)
     before = len(df)
-    df = df.sort_values("_p").drop_duplicates("_n", keep="first").sort_index()
+    df = df.sort_values("_p", kind="stable").drop_duplicates("_n", keep="first").sort_index()
     print(f"\n중복 제거: {before} -> {len(df)}")
     df = df.drop(columns=["_n", "_p"])
     df["n_ade"] = df.ade_spans.map(len)

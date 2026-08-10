@@ -5,14 +5,14 @@
 #   PsyTAR    : CC BY 4.0 + AskaPatient 게시물 별도 약관
 #   PHEE      : 원 저장소 라이선스 확인 필요
 # ============================================================
-data/raw/
+**/data/raw/
 *.zip
 *.xlsx
 
-# 원문이 포함된 파생 파일도 커밋 금지
-data/unified.jsonl
+# 원문이 포함된 파생 파일도 커밋 금지 (unified.jsonl, cadec_v1_sct.jsonl 등 전부)
+**/data/*.jsonl
 # fold_assignment.csv는 doc_id만 담아 원문이 없으므로 커밋한다
-data/*.parquet
+**/data/*.parquet
 
 # 통계·집계만 커밋한다 (reports/)
 __pycache__/

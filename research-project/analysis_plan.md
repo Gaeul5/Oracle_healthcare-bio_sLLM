@@ -162,3 +162,13 @@ DPO / Long Context / verifier·latent reasoning / 대형 지식그래프 /
 - 2026-08-10 (동일자 추가): 폴드 배정 확정. 포럼 6그룹을 4폴드로 묶었다
   (`src/make_folds.py`의 FOLD_OF_GROUP). 결과는
   `data/fold_assignment.csv`에 고정하며 이후 변경하지 않는다.
+
+- 2026-08-10 (동일자 추가, 학습 개시 전): `build_unified.py`의 전역 중복 제거
+  단계(`sort_values("_p")`)가 기본 `quicksort`(비안정 정렬)를 사용해, 텍스트가
+  동일한 동률 행(주로 PHEE에서 같은 문서에 이벤트별로 여러 주석 행이 존재해
+  `context`가 중복되는 경우) 중 어느 것을 남길지가 실행마다 달라질 수 있음을
+  확인했다. 총 문서 수(10,340)와 코퍼스별 분포는 일치했으나 개별 doc_id
+  14개(0.135%)가 재현되지 않았다. `kind="stable"`로 수정하고 동일 입력으로
+  2회 실행해 산출물 해시가 일치함을 확인한 뒤, `unified.jsonl`과
+  `fold_assignment.csv`를 재생성했다. 학습을 전혀 시작하지 않은 시점이라
+  재생성에 따른 데이터 유출 위험은 없다.
