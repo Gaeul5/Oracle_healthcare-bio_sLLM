@@ -1,0 +1,412 @@
+LangChain RAG 챗봇 과제 설계문서 - 학생용
+============================================================
+
+1. 과제 목표
+------------------------------------------------------------
+이번 과제의 목표는 FastAPI, HTML/CSS/JS, PostgreSQL, LangChain을 사용해서
+간단한 문서 기반 RAG 챗봇을 완성하는 것입니다.
+
+완성해야 하는 기능은 다음과 같습니다.
+
+1) 브라우저에서 문서 목록을 조회한다.
+2) 브라우저에서 txt, md, pdf 문서를 등록한다.
+3) 등록된 문서를 chunk로 나누고 embedding으로 변환한다.
+4) chunk 본문과 embedding을 기존 PostgreSQL 테이블에 저장한다.
+5) 사용자가 질문하면 질문을 embedding으로 변환한다.
+6) pgvector 유사도 검색으로 관련 chunk를 찾는다.
+7) 검색된 chunk를 context로 사용해 LLM 답변을 생성한다.
+8) 답변 아래에 참고한 출처를 표시한다.
+
+
+2. 실행 방법
+------------------------------------------------------------
+
+1) 가상환경 생성
+
+Windows:
+python -m venv .venv
+.venv\Scripts\activate
+
+macOS/Linux:
+python -m venv .venv
+source .venv/bin/activate
+
+2) 패키지 설치
+
+pip install -r requirements.txt
+
+3) 환경변수 설정
+
+.env.example 파일을 복사해서 .env 파일을 만듭니다.
+이미 강의에서 사용하던 .env가 있다면 해당 값을 사용해도 됩니다.
+
+필요한 환경변수:
+
+OPENAI_API_KEY=
+OPENAI_MODEL=
+OPENAI_EMBEDDING_MODEL=
+POSTGRES_HOST=
+POSTGRES_PORT=
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+
+주의:
+rag_embeddings.embedding 컬럼은 vector(1536)입니다.
+따라서 1536차원 embedding을 반환하는 모델을 사용해야 합니다.
+
+4) 서버 실행
+
+python run_server.py
+
+5) 브라우저 접속
+
+http://127.0.0.1:8000
+
+
+3. 프로젝트 폴더 구조와 역할
+------------------------------------------------------------
+
+이번 스타터는 아래 구조로 제공됩니다.
+각 파일의 TODO를 채우면서 기능을 완성하면 됩니다.
+
+rag-chatbot-assignment-starter/
+├─ run_server.py
+├─ requirements.txt
+├─ .env.example
+│
+├─ backend/
+│  ├─ app/
+│  │  ├─ main.py
+│  │  │
+│  │  ├─ core/
+│  │  │  └─ config.py
+│  │  │
+│  │  ├─ db/
+│  │  │  ├─ connection.py
+│  │  │  └─ repository.py
+│  │  │
+│  │  ├─ routers/
+│  │  │  ├─ chat.py
+│  │  │  └─ documents.py
+│  │  │
+│  │  ├─ services/
+│  │  │  ├─ document_service.py
+│  │  │  ├─ embedding_service.py
+│  │  │  └─ rag_service.py
+│  │  │
+│  │  └─ utils/
+│  │     ├─ file_loader.py
+│  │     └─ filename.py
+│  │
+│  └─ uploads/
+│     └─ .gitkeep
+│
+├─ frontend/
+│  ├─ index.html
+│  ├─ css/
+│  │  └─ style.css
+│  └─ js/
+│     └─ app.js
+│
+└─ docs/
+   └─ student_design_document.txt
+
+각 파일의 역할은 다음과 같습니다.
+
+run_server.py
+- FastAPI 서버를 실행하는 파일입니다.
+- 과제 실행 시 python run_server.py 명령으로 실행합니다.
+
+requirements.txt
+- 실습에 필요한 Python 패키지 목록입니다.
+- pip install -r requirements.txt로 설치합니다.
+
+.env.example
+- 환경변수 예시 파일입니다.
+- 이 파일을 .env로 복사한 뒤 OpenAI와 PostgreSQL 정보를 입력합니다.
+
+backend/app/main.py
+- FastAPI 앱의 시작점입니다.
+- API router를 등록하고 frontend 정적 파일을 연결합니다.
+
+backend/app/core/config.py
+- .env 파일에서 환경변수를 읽는 파일입니다.
+- OpenAI 모델명, 임베딩 모델명, PostgreSQL 접속 정보를 관리합니다.
+
+backend/app/db/connection.py
+- PostgreSQL에 연결하는 함수를 관리합니다.
+- DB 접속 정보는 .env에서 가져옵니다.
+
+backend/app/db/repository.py
+- DB에 직접 SELECT, INSERT, DELETE를 수행하는 파일입니다.
+- rag_documents, rag_chunks, rag_embeddings 테이블을 사용합니다.
+- 문서 목록 조회, chunk 저장, embedding 저장, vector 검색을 구현합니다.
+
+backend/app/routers/documents.py
+- 문서 관련 API를 정의합니다.
+- GET /api/documents, POST /api/documents, DELETE /api/documents/{document_id}를 구현합니다.
+
+backend/app/routers/chat.py
+- 채팅 API를 정의합니다.
+- POST /api/chat을 구현합니다.
+
+backend/app/services/document_service.py
+- 문서 업로드 후 indexing 흐름을 처리합니다.
+- 파일 로드, chunk 분리, DB 저장, embedding 저장을 연결합니다.
+
+backend/app/services/embedding_service.py
+- OpenAI Embeddings를 사용해서 text를 vector로 바꾸는 역할을 합니다.
+- 문서 chunk와 사용자 질문 모두 이 파일의 기능을 사용합니다.
+
+backend/app/services/rag_service.py
+- RAG 답변 생성 흐름을 처리합니다.
+- 관련 chunk 검색, context 생성, prompt 구성, LLM 호출, sources 구성을 담당합니다.
+
+backend/app/utils/file_loader.py
+- 업로드된 txt, md, pdf 파일을 LangChain Document 형태로 읽어옵니다.
+
+backend/app/utils/filename.py
+- 업로드 파일명을 안전하게 저장할 수 있도록 변환합니다.
+
+backend/uploads/
+- 사용자가 업로드한 원본 파일이 저장되는 폴더입니다.
+
+frontend/index.html
+- 브라우저에 보이는 기본 HTML 화면입니다.
+- 채팅 화면과 문서 목록 화면이 포함되어 있습니다.
+
+frontend/css/style.css
+- 화면 디자인을 담당하는 CSS 파일입니다.
+
+frontend/js/app.js
+- 화면 전환, 버튼 이벤트, fetch API 호출을 담당하는 JavaScript 파일입니다.
+- fetchDocuments(), uploadDocument(), sendMessage(), deleteDocument()를 구현합니다.
+
+docs/student_design_document.txt
+- 현재 보고 있는 학생용 과제 설계문서입니다.
+
+
+4. 사용하는 기존 DB 테이블
+------------------------------------------------------------
+이번 과제에서는 새 테이블을 만들지 않습니다.
+기존 Day 3 실습에서 사용한 다음 테이블을 그대로 사용합니다.
+
+1) rag_documents
+- 문서 기본 정보 저장
+- 문서 제목, 파일명, 파일 타입, 페이지 수 저장
+
+2) rag_chunks
+- 문서를 나눈 chunk 본문 저장
+- 어떤 문서의 몇 번째 chunk인지 저장
+
+3) rag_embeddings
+- 각 chunk의 embedding vector 저장
+- embedding_model 이름 저장
+
+출처 표시는 세 테이블을 JOIN해서 만듭니다.
+
+
+5. 전체 처리 흐름
+------------------------------------------------------------
+
+문서 등록 흐름:
+
+파일 업로드
+-> LangChain Document Loader로 문서 읽기
+-> Text Splitter로 chunk 분리
+-> rag_documents에 문서 정보 저장
+-> rag_chunks에 chunk 본문 저장
+-> OpenAI Embeddings로 chunk embedding 생성
+-> rag_embeddings에 embedding 저장
+
+질문 처리 흐름:
+
+사용자 질문
+-> 질문 embedding 생성
+-> rag_embeddings에서 pgvector 유사도 검색
+-> rag_chunks, rag_documents와 JOIN
+-> 관련 chunk content를 context로 묶기
+-> LangChain Prompt 구성
+-> ChatOpenAI 호출
+-> answer와 sources 반환
+
+
+6. 구현해야 하는 API
+------------------------------------------------------------
+
+1) GET /api/documents
+목적: 문서 목록 조회
+응답 예시:
+{
+  "documents": [
+    {
+      "id": 1,
+      "title": "LangChain 자료",
+      "file_name": "langchain.pdf",
+      "file_type": "pdf",
+      "page_count": 10,
+      "chunk_count": 25,
+      "status": "indexed"
+    }
+  ]
+}
+
+2) POST /api/documents
+목적: 문서 업로드 및 indexing
+요청: multipart/form-data
+필드:
+- title
+- file
+
+3) POST /api/chat
+목적: 질문에 대한 RAG 답변 생성
+요청 예시:
+{
+  "message": "RAG는 어떻게 동작해?",
+  "top_k": 4
+}
+
+응답 예시:
+{
+  "answer": "RAG는 관련 문서를 먼저 검색한 뒤 그 내용을 바탕으로 답변을 생성하는 방식입니다.",
+  "sources": [
+    {
+      "document_id": 1,
+      "document_title": "LangChain 자료",
+      "file_name": "langchain.pdf",
+      "page_number": 2,
+      "chunk_index": 3,
+      "preview": "RAG는 Retrieval-Augmented Generation..."
+    }
+  ]
+}
+
+4) DELETE /api/documents/{document_id}
+목적: 문서 삭제
+기존 DB schema에 ON DELETE CASCADE가 있으므로 rag_documents를 삭제하면 연결된 chunk와 embedding도 함께 삭제됩니다.
+
+
+7. 스타터 파일에서 구현할 TODO
+------------------------------------------------------------
+
+frontend/js/app.js
+- fetchDocuments()
+- uploadDocument()
+- sendMessage()
+- deleteDocument()
+
+backend/app/routers/documents.py
+- get_documents()
+- upload_document()
+- delete_document()
+
+backend/app/routers/chat.py
+- chat()
+
+backend/app/db/repository.py
+- find_all_documents()
+- insert_document()
+- insert_chunk()
+- insert_embedding()
+- search_similar_chunks()
+- delete_document()
+
+backend/app/utils/file_loader.py
+- load_file_as_documents()
+
+backend/app/services/document_service.py
+- split_documents()
+- index_document()
+
+backend/app/services/embedding_service.py
+- get_embedding_model()
+- embed_text()
+- embed_documents()
+
+backend/app/services/rag_service.py
+- search_similar_chunks()
+- build_context()
+- build_sources()
+- generate_answer()
+- ask()
+
+
+8. pgvector 검색 SQL 힌트
+------------------------------------------------------------
+
+질문 embedding과 chunk embedding의 거리를 계산할 때는 pgvector 연산자를 사용합니다.
+
+개념 SQL:
+
+SELECT
+    d.id AS document_id,
+    d.title AS document_title,
+    d.file_name,
+    d.file_type,
+    c.id AS chunk_id,
+    c.chunk_index,
+    c.page_number,
+    c.content,
+    e.embedding <=> %s::vector AS distance
+FROM rag_embeddings e
+JOIN rag_chunks c ON e.chunk_id = c.id
+JOIN rag_documents d ON c.document_id = d.id
+WHERE e.embedding_model = %s
+ORDER BY e.embedding <=> %s::vector
+LIMIT %s;
+
+주의:
+- distance는 낮을수록 더 유사합니다.
+- 질문 embedding과 chunk embedding은 같은 모델로 만들어져야 합니다.
+- embedding_model 조건을 꼭 사용하세요.
+
+
+9. 프롬프트 작성 원칙
+------------------------------------------------------------
+
+LLM에게 출처를 직접 만들라고 시키지 않습니다.
+출처는 DB 검색 결과로부터 별도로 구성합니다.
+
+프롬프트 예시:
+
+너는 문서 기반 질의응답 챗봇이다.
+아래 [문서 내용]만 참고해서 사용자의 질문에 답변해라.
+문서 내용에서 답을 찾을 수 없으면 "등록된 문서에서 답을 찾을 수 없습니다."라고 답변해라.
+답변은 한국어로 작성해라.
+출처는 직접 만들어내지 마라.
+
+[문서 내용]
+{context}
+
+[사용자 질문]
+{question}
+
+
+10. 완료 기준
+------------------------------------------------------------
+
+다음 조건을 만족하면 과제를 완료한 것입니다.
+
+1) python run_server.py로 서버가 실행된다.
+2) 브라우저에서 채팅 화면과 문서 목록 화면이 보인다.
+3) 문서 목록 화면에서 DB 문서 목록이 조회된다.
+4) txt, md, pdf 문서를 업로드할 수 있다.
+5) 업로드된 문서가 chunk로 나뉘어 rag_chunks에 저장된다.
+6) chunk embedding이 rag_embeddings에 저장된다.
+7) 사용자가 질문하면 관련 chunk가 검색된다.
+8) LLM 답변이 생성된다.
+9) 답변 아래에 출처가 표시된다.
+10) 문서를 삭제하면 관련 chunk와 embedding도 함께 삭제된다.
+
+
+11. 핵심 정리
+------------------------------------------------------------
+
+이번 과제의 핵심은 단순 챗봇이 아니라 RAG 챗봇입니다.
+
+중요한 흐름은 다음 한 문장으로 정리할 수 있습니다.
+
+문서를 chunk로 나누고 embedding으로 저장한 뒤,
+사용자 질문과 비슷한 chunk를 검색해서,
+그 chunk를 LLM context로 넣어 답변을 생성한다.

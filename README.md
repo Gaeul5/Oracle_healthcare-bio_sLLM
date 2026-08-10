@@ -1,14 +1,28 @@
+# Oracle_healthcare-bio_sLLM
+
+Healthcare & Bio sLLM 과정 학습 자료와, 이를 바탕으로 진행하는 개인 연구 프로젝트를 함께 관리하는 저장소.
+
+## 디렉터리 구조
+
+```
+.
+├── research-project/     # 개인 연구: 표현 형식이 sLLM ADE 추출 일반화에 미치는 영향
+└── bootcamp-exercises/   # 과정 실습 및 과제 (RAG, LangGraph, MCP 등)
+```
+
+---
+
+## research-project
+
 # 환자 서사 표현 형식과 소형 언어모델의 도메인 일반화
 
 학습 데이터의 **표현 형식**이 소형 생성 언어모델(0.5B–7B)의
 **도메인 간 이상반응(ADE) 추출 일반화**에 미치는 영향을 통제 실험으로 측정한다.
 
 연구 질문·가설·평가 지표·중단 기준은 **실험 시작 전에**
-[`analysis_plan.md`](analysis_plan.md)에 고정되어 있다.
+[`research-project/analysis_plan.md`](research-project/analysis_plan.md)에 고정되어 있다.
 
----
-
-## ⚠️ 데이터는 이 저장소에 포함되지 않는다
+### ⚠️ 데이터는 이 저장소에 포함되지 않는다
 
 원본 코퍼스는 각자의 라이선스에 따라 **직접 내려받아야 한다.**
 특히 CADEC v1은 CSIRO Data Licence 하에 있어 재배포가 허용되지 않는다.
@@ -22,7 +36,7 @@
 
 n2c2와 MADE 1.0은 본 연구에서 사용하지 않는다. 사유는 `analysis_plan.md` §7 참조.
 
-## 디렉터리 배치
+### 디렉터리 배치 (데이터)
 
 ```
 <ADE_DATA_ROOT>/
@@ -32,15 +46,16 @@ n2c2와 MADE 1.0은 본 연구에서 사용하지 않는다. 사유는 `analysis
 └── PHEE-master/PHEE-master/data/json/{train,dev,test}.json
 ```
 
-## 실행
+### 실행
 
 ```bash
+cd research-project
 pip install pandas openpyxl
 export ADE_DATA_ROOT=/path/to/corpora
 python src/build_unified.py     # -> data/unified.jsonl (gitignore 대상)
 ```
 
-## 통합 스키마
+### 통합 스키마
 
 | 필드 | 설명 |
 |---|---|
@@ -56,12 +71,18 @@ python src/build_unified.py     # -> data/unified.jsonl (gitignore 대상)
 | `verbatim_ratio` | 표현이 원문에 그대로 등장하는 비율 |
 | `orig_split` | 원본 데이터셋의 공식 분할 |
 
-집계 통계는 [`reports/data_stats.md`](reports/data_stats.md)에 있다 (원문 미포함).
+집계 통계는 [`research-project/reports/data_stats.md`](research-project/reports/data_stats.md)에 있다 (원문 미포함).
 
-## 참고 문헌
+### 참고 문헌
 
 - Dai X., Karimi S., Sarker A., Hachey B., Paris C. **MultiADE: A Multi-domain
   Benchmark for Adverse Drug Event Extraction.** *J Biomed Inform* 160:104744, 2024.
 - Karimi S., Metke-Jimenez A., Kemp M., Wang C. **CADEC: A corpus of adverse drug
   event annotations.** *J Biomed Inform* 55:73–81, 2015.
 - Zolnoori M., et al. **The PsyTAR dataset.** *Data in Brief* 24:103838, 2019.
+
+---
+
+## bootcamp-exercises
+
+Healthcare & Bio sLLM 과정 진행 중 작성한 실습 코드와 과제 모음 (RAG 챗봇, LangGraph, MCP, A2A 등).
