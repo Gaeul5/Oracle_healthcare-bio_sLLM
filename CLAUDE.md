@@ -155,6 +155,17 @@ UMLS 라이선스로도 못 얻는다(MSSO 별도 구독 필요) — SNOMED CT�
   경로(`cadecv2_new/data/extracted/data`, `cadec/v2/cadec`, `psytar/psytar`,
   `PHEE-master/PHEE-master`)에 맞춰 심볼릭 링크로 연결해둔 `data/raw/build_root/`가
   있음. `ADE_DATA_ROOT=research-project/data/raw/build_root`로 실행하면 됨.
+- `notebooks/colab_vscode_bridge.ipynb` 추가함: VSCode에서 `.ipynb`를 열어둔 채
+  Colab의 T4 GPU 커널에 원격으로 붙는 브리지 노트북(jupyter_http_over_ws + ngrok
+  터널). 최신 Jupyter 확장(ms-toolsai.jupyter 2025.9.1)에서는 별도 커맨드가 아니라
+  커널 선택 UI("Select Kernel" → "Select Another Kernel..." → "Existing Jupyter
+  Server...")로 붙인다. 이 노트북 자체는 Colab 브라우저 탭에서만 실행해야 함.
+  ngrok authtoken 필요(무료). Colab에서 `jupyter notebook`은 root로 돌아가므로
+  `--allow-root` 없으면 조용히 죽는다(브리지 노트북엔 이미 반영됨). 또한
+  `google.colab.drive.mount()`는 브라우저-커널 전용 JS 채널로 인증 팝업을 띄우므로
+  VSCode의 원격 커널에서 직접 호출하면 실패한다(`ValueError: mount failed`) —
+  Drive는 반드시 브리지 노트북(브라우저 탭) 쪽에서 먼저 마운트해야 같은 VM에
+  OS 레벨로 마운트되어 VSCode 쪽 커널에서도 보인다.
 
 ## 7. 판정 기준 (사전등록됨, 결과 보고 후 바꾸지 말 것)
 
