@@ -105,6 +105,13 @@ def main():
                      help="입력 원문 길이 상한. 99.5%%ile이 약 400토큰이라 대부분 잘리지 않음")
     args = ap.parse_args()
 
+    if not os.path.exists(args.unified):
+        raise SystemExit(
+            f"--unified 경로에 파일이 없음: {args.unified}\n"
+            "Google Drive가 이 세션에서 마운트되어 있는지 (drive.mount), "
+            "경로/파일명이 맞는지 확인할 것."
+        )
+
     import pandas as pd
     df = pd.read_json(args.unified, lines=True)
     if args.limit:
