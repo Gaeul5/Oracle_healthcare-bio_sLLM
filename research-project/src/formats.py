@@ -66,6 +66,7 @@ it (for example: "The text does not say when the nausea started.").
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
+context: <copy the full sentence from the text that mentions this event>
 onset: <a full sentence on when the event started after taking the drug>
 after_stopping: <a full sentence on what happened when the drug was stopped>
 after_restarting: <a full sentence on what happened when the drug was taken again>
@@ -88,6 +89,7 @@ started.").
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
+context: <copy the full sentence from the text that mentions this event>
 onset: <a full sentence on when the event started after taking the drug>
 after_stopping: <a full sentence on what happened when the drug was stopped>
 after_restarting: <a full sentence on what happened when the drug was taken again>
