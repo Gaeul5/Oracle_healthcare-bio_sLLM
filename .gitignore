@@ -11,6 +11,7 @@ data/raw/
 
 # 원문이 포함된 파생 파일도 커밋 금지
 data/unified.jsonl
+# fold_assignment.csv는 doc_id만 담아 원문이 없으므로 커밋한다
 data/*.parquet
 
 # 통계·집계만 커밋한다 (reports/)

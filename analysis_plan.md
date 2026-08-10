@@ -152,3 +152,13 @@ DPO / Long Context / verifier·latent reasoning / 대형 지식그래프 /
 ## 변경 이력
 
 - 2026-08-10: 최초 작성.
+
+- 2026-08-10 (동일자 추가): 평가 코드 관련 결정.
+  MultiADE 논문이 명시한 GitHub 저장소(github.com/daixiangau/MultiADE)가
+  2026-08-10 확인 시점에 접근 불가(Not Found)였다. 따라서 엄격/완화 매칭
+  기준을 `src/evaluate.py`에 직접 정의한다. 본 연구의 F1은 MultiADE
+  보고값과 **직접 비교하지 않으며**, 경향(도메인 이전 비대칭)만 대조한다.
+  이 제약을 논문 Limitations에 명시한다.
+- 2026-08-10 (동일자 추가): 폴드 배정 확정. 포럼 6그룹을 4폴드로 묶었다
+  (`src/make_folds.py`의 FOLD_OF_GROUP). 결과는
+  `data/fold_assignment.csv`에 고정하며 이후 변경하지 않는다.
