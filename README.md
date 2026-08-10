@@ -1,0 +1,67 @@
+# 환자 서사 표현 형식과 소형 언어모델의 도메인 일반화
+
+학습 데이터의 **표현 형식**이 소형 생성 언어모델(0.5B–7B)의
+**도메인 간 이상반응(ADE) 추출 일반화**에 미치는 영향을 통제 실험으로 측정한다.
+
+연구 질문·가설·평가 지표·중단 기준은 **실험 시작 전에**
+[`analysis_plan.md`](analysis_plan.md)에 고정되어 있다.
+
+---
+
+## ⚠️ 데이터는 이 저장소에 포함되지 않는다
+
+원본 코퍼스는 각자의 라이선스에 따라 **직접 내려받아야 한다.**
+특히 CADEC v1은 CSIRO Data Licence 하에 있어 재배포가 허용되지 않는다.
+
+| 코퍼스 | 확보 경로 | 라이선스 |
+|---|---|---|
+| CADECv2 | CSIRO Data Portal `csiro:62387` (DOI 10.25919/3v5b-k950) | CC BY |
+| CADEC v1 | CSIRO Data Portal (DOI 10.4225/08/570FB102BDAD2) | CSIRO Data Licence (연구 목적) |
+| PsyTAR | Data in Brief 논문 Online Supplement #1 / AskaPatient 연구 페이지 | CC BY 4.0 |
+| PHEE | 원 저장소 | 원 저장소 기준 |
+
+n2c2와 MADE 1.0은 본 연구에서 사용하지 않는다. 사유는 `analysis_plan.md` §7 참조.
+
+## 디렉터리 배치
+
+```
+<ADE_DATA_ROOT>/
+├── cadecv2_new/data/extracted/data/{txt,ann,split}/
+├── cadec/v2/cadec/{text,original}/
+├── psytar/psytar/PsyTAR_dataset.xlsx
+└── PHEE-master/PHEE-master/data/json/{train,dev,test}.json
+```
+
+## 실행
+
+```bash
+pip install pandas openpyxl
+export ADE_DATA_ROOT=/path/to/corpora
+python src/build_unified.py     # -> data/unified.jsonl (gitignore 대상)
+```
+
+## 통합 스키마
+
+| 필드 | 설명 |
+|---|---|
+| `doc_id` | 전역 고유 ID (`corpus:stem`) |
+| `domain` | `forum` \| `literature` |
+| `corpus` | `cadecv2` \| `cadec_v1` \| `psytar` \| `phee` |
+| `drug_group` | 약물 계열 (그룹 교차검증 키) |
+| `drug_name` | 약물명 |
+| `text` | 원문 |
+| `ade_spans` | ADE 표현 목록 |
+| `ade_offsets` | `(start, end)` 목록 — 불연속은 병합됨 |
+| `n_discontig_merged` | 병합한 불연속 엔티티 수 |
+| `verbatim_ratio` | 표현이 원문에 그대로 등장하는 비율 |
+| `orig_split` | 원본 데이터셋의 공식 분할 |
+
+집계 통계는 [`reports/data_stats.md`](reports/data_stats.md)에 있다 (원문 미포함).
+
+## 참고 문헌
+
+- Dai X., Karimi S., Sarker A., Hachey B., Paris C. **MultiADE: A Multi-domain
+  Benchmark for Adverse Drug Event Extraction.** *J Biomed Inform* 160:104744, 2024.
+- Karimi S., Metke-Jimenez A., Kemp M., Wang C. **CADEC: A corpus of adverse drug
+  event annotations.** *J Biomed Inform* 55:73–81, 2015.
+- Zolnoori M., et al. **The PsyTAR dataset.** *Data in Brief* 24:103838, 2019.

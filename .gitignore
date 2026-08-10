@@ -1,0 +1,19 @@
+# ============================================================
+# 원본 코퍼스는 절대 커밋하지 않는다 (라이선스)
+#   CADEC v1  : CSIRO Data Licence — 재배포 불가
+#   CADECv2   : CC BY (배포 가능하나 원본은 CSIRO DAP에서 받도록 함)
+#   PsyTAR    : CC BY 4.0 + AskaPatient 게시물 별도 약관
+#   PHEE      : 원 저장소 라이선스 확인 필요
+# ============================================================
+data/raw/
+*.zip
+*.xlsx
+
+# 원문이 포함된 파생 파일도 커밋 금지
+data/unified.jsonl
+data/*.parquet
+
+# 통계·집계만 커밋한다 (reports/)
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
