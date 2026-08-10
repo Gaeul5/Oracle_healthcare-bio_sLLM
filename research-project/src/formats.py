@@ -59,8 +59,10 @@ R3_TEACHER_PROMPT = f"""{TASK}
 
 {RULES}
 Output one block per adverse drug event, using exactly these fields.
-For onset, after_stopping, after_restarting, and severity, answer in a full
-sentence. Write "Not stated." if the text does not say.
+For onset, after_stopping, after_restarting, and severity, always answer in
+a full sentence. If the text does not say, do not just write "not stated" —
+write one full sentence explicitly stating that the text does not mention
+it (for example: "The text does not say when the nausea started.").
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
@@ -78,8 +80,11 @@ R4_TEACHER_PROMPT = f"""{TASK}
 
 {RULES}
 Output one block per adverse drug event, using exactly these fields.
-For onset, after_stopping, after_restarting, severity, and judgement, answer
-in a full sentence. Write "Not stated." if the text does not say.
+For onset, after_stopping, after_restarting, severity, and judgement, always
+answer in a full sentence. If the text does not say, do not just write
+"not stated" — write one full sentence explicitly stating that the text
+does not mention it (for example: "The text does not say when the nausea
+started.").
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
