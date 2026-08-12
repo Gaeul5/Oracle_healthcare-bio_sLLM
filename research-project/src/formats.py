@@ -86,7 +86,7 @@ For onset, after_stopping, after_restarting, and severity, always answer in
 exactly one full sentence. If the text does not say, do not just write
 "not stated" — write one full sentence explicitly stating that the text
 does not mention it (for example: "The text does not say when the nausea
-started."). judgement is always exactly one sentence.
+started."). judgement is always exactly one short sentence, 10 words or fewer.
 
 drug: <the medication named in the text>
 event: <the adverse drug event, copied exactly from the text>
@@ -95,7 +95,7 @@ onset: <a full sentence on when the event started after taking the drug>
 after_stopping: <a full sentence on what happened when the drug was stopped>
 after_restarting: <a full sentence on what happened when the drug was taken again>
 severity: <a full sentence stating whether the event was mild, moderate, or severe, and why>
-judgement: <one sentence on how clearly the drug caused this event>
+judgement: <one short sentence, 10 words or fewer, on how clearly the drug caused this event>
 
 Text:
 {{text}}
