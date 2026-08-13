@@ -50,7 +50,7 @@ from transformers import (
     AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,
     Trainer, TrainingArguments,
 )
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from datasets import Dataset
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -63,10 +63,13 @@ MODEL_IDS = {
 }
 
 # T4 16GB 기준 모델 크기별 기본 배치 설정. 필요시 CLI로 덮어쓴다.
+# gradient checkpointing 적용 후에도 Qwen2.5의 큰 vocab(~152k)이 fp32 loss
+# 계산에서 logits 텐서를 크게 만들어 OOM 위험이 있어, per-device 배치를
+# 작게 유지하고 grad accumulation으로 유효 배치(=16)를 모델 크기 간 통일한다.
 BATCH_DEFAULTS = {
-    "0.5b": dict(per_device_train_batch_size=8, gradient_accumulation_steps=2),
-    "1.5b": dict(per_device_train_batch_size=4, gradient_accumulation_steps=4),
-    "3b": dict(per_device_train_batch_size=2, gradient_accumulation_steps=8),
+    "0.5b": dict(per_device_train_batch_size=4, gradient_accumulation_steps=4),
+    "1.5b": dict(per_device_train_batch_size=2, gradient_accumulation_steps=8),
+    "3b": dict(per_device_train_batch_size=1, gradient_accumulation_steps=16),
 }
 
 R0_PROMPT = f"""{TASK}
@@ -249,6 +252,7 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         model_id, quantization_config=bnb, device_map="auto",
     )
+    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
     model = get_peft_model(model, LoraConfig(
         r=args.lora_r, lora_alpha=args.lora_r * 2, lora_dropout=0.05,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
@@ -271,6 +275,8 @@ def main():
         num_train_epochs=args.epochs,
         learning_rate=args.lr,
         fp16=True,
+        gradient_checkpointing=True,
+        gradient_checkpointing_kwargs={"use_reentrant": False},
         logging_steps=20,
         save_strategy="epoch",
         save_total_limit=1,
