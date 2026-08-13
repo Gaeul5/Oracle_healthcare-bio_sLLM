@@ -7,7 +7,7 @@
 # ============================================================
 **/data/raw/
 *.zip
-*.xlsx
+**/data/*.xlsx
 
 # 원문이 포함된 파생 파일도 커밋 금지 (unified.jsonl, cadec_v1_sct.jsonl 등 전부)
 **/data/*.jsonl
