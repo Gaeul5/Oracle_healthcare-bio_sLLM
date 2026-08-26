@@ -46,7 +46,7 @@ n2c2와 MADE 1.0은 본 연구에서 사용하지 않는다. 사유는 `analysis
 └── PHEE-master/PHEE-master/data/json/{train,dev,test}.json
 ```
 
-### 실행
+### 실행 파이프라인
 
 ```bash
 cd research-project
@@ -54,6 +54,46 @@ pip install pandas openpyxl
 export ADE_DATA_ROOT=/path/to/corpora
 python src/build_unified.py     # -> data/unified.jsonl (gitignore 대상)
 ```
+
+이후 단계 (GPU 필요, 별도 세션 권장):
+
+```bash
+# 1. 교사 모델(Qwen2.5-7B-Instruct, 4bit)로 R2/R3/R4 생성
+python src/generate_teacher_data.py --unified data/unified.jsonl --out data/teacher_outputs.jsonl
+
+# 2. 고정 평가셋 샘플링 (도메인당 400건, 1회만 실행)
+python src/make_eval_sample.py --unified data/unified.jsonl --out data/eval_sample.csv
+
+# 3. 학생 모델(Qwen2.5 0.5B/1.5B/3B) QLoRA 학습 — 조건 x 도메인 x 시드 조합별 반복
+python src/train_qlora.py --unified data/unified.jsonl --teacher-outputs data/teacher_outputs.jsonl \
+    --model-size 0.5b --condition R3 --train-domain forum --seed 0 \
+    --out-dir adapters/0.5b_R3_forum_seed0
+
+# 4. 미학습 도메인에 대해 추론 후 채점 (어댑터 디렉토리당 1회)
+python src/run_inference.py --unified data/unified.jsonl --eval-sample data/eval_sample.csv \
+    --adapter-dir adapters/0.5b_R3_forum_seed0
+python src/run_eval_all.py --unified data/unified.jsonl --adapters-dir adapters \
+    --out reports/eval_results.csv
+```
+
+학습된 어댑터(`adapters/`)는 용량이 커서(72개 조합 기준 약 1.4GB) 이 저장소에는 포함하지 않는다.
+
+### 결과 요약
+
+72개 조합(모델 3종 × 조건 4종 × 도메인 2종 × 시드 3개)을 전부 학습·평가했다.
+전체 수치는 [`research-project/reports/eval_results.csv`](research-project/reports/eval_results.csv)에 있다.
+
+- **H1 지지** — 구조화 형식(R3/R4)이 자유서술 통제군(R2)보다 strict F1 기준으로 18/18 조합에서
+  전부 높았다.
+- **H2 기각(반대 방향)** — 구조화의 효과 크기(R3−R2)는 모델이 작을수록 커질 것으로 예상했으나,
+  실제로는 모델이 클수록 커졌다 (forum 학습 기준 0.5B +39.5pt → 1.5B +44.2pt → 3B +48.9pt).
+- R2가 R0보다도 낮게 나오는 것은 자유서술에서 정확한 문자열을 복원하는 채점 파싱의 한계가
+  섞인 결과이며, 논문 Limitations에 명시한다.
+
+발표 자료: [`research-project/reports/presentation.pptx`](research-project/reports/presentation.pptx) ·
+[`presentation_script.md`](research-project/reports/presentation_script.md).
+조건별(R0/R2/R3/R4) 출력을 실시간으로 비교하는 데모는 `research-project/src/demo_app.py`로 실행한다
+(GPU 세션에서 `python src/demo_app.py` — gradio 공개 링크 생성).
 
 ### 통합 스키마
 
