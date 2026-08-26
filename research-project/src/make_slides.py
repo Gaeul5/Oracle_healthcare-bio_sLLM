@@ -119,7 +119,7 @@ def new_slide():
     return s
 
 
-def sidebar(slide, eyebrow_text, n, total=10, legend=False):
+def sidebar(slide, eyebrow_text, n, total=11, legend=False):
     rect(slide, Inches(0), Inches(0), SIDEBAR_W, SH, fill=SIDEBAR)
     text(slide, Inches(0.32), Inches(0.5), Inches(1.4), Inches(1.4), eyebrow_text.upper(),
          size=11.5, bold=True, color=ACCENT, font=SANS, line_spacing=1.35, spacing=" ")
@@ -399,9 +399,36 @@ bullet_list(s, Inches(9.4), Inches(1.9), Inches(3.3), [
     "사전등록 원칙에 따라 기각 결과를 그대로 보고한다.",
 ], size=12.5)
 
-# ============================================================ 10. 결론
+# ============================================================ 10. 부가 실험 — RAG
 s = new_slide()
-sidebar(s, "결론", 10)
+sidebar(s, "부가 실험", 10, legend=True)
+masthead(s, "검색 기반(RAG)은 파인튜닝을 대체하지 못한다", title_size=23)
+text(s, CONTENT_LEFT, Inches(1.85), CONTENT_W, Inches(0.7),
+     "파인튜닝 없이 학습 도메인 문서 + R3 교사 출력을 BM25로 검색해 k=3 few-shot으로 넣고\n베이스 3B 모델로 R3 형식을 흉내낸 결과 (검색은 결정론적이라 시드 없이 방향당 1회).",
+     size=12.5, color=MUTED, font=SANS, line_spacing=1.3)
+rag_headers = ["방향", "R0", "R2", "R3 (QLoRA)", "RAG (파인튜닝 없음)"]
+rag_rows = [
+    ("forum → literature", f"{mean_f1('3b','forum','R0'):.1f}", f"{mean_f1('3b','forum','R2'):.1f}",
+     f"{mean_f1('3b','forum','R3'):.1f}", "38.7"),
+    ("literature → forum", f"{mean_f1('3b','literature','R0'):.1f}", f"{mean_f1('3b','literature','R2'):.1f}",
+     f"{mean_f1('3b','literature','R3'):.1f}", "11.6"),
+]
+minimal_table(
+    s, CONTENT_LEFT, Inches(2.75), CONTENT_W,
+    rag_headers, rag_rows,
+    col_widths=[Inches(2.6), Inches(1.6), Inches(1.6), Inches(2.0), Inches(2.6)],
+    body_size=14, header_size=11, row_h=Inches(0.55),
+)
+text(s, CONTENT_LEFT, Inches(4.4), CONTENT_W, Inches(0.4), "strict F1, 3B 모델 기준", size=11, color=MUTED, font=MONO)
+hline(s, CONTENT_LEFT, Inches(4.95), CONTENT_W, weight=0.5)
+bullet_list(s, CONTENT_LEFT, Inches(5.2), CONTENT_W, [
+    "RAG는 R2보다 훨씬 낫지만 QLoRA R3/R4에는 못 미친다 — 두 방향 모두 R0와 비슷한 수준에 머문다.",
+    "검색된 예시가 형식을 흉내내는 데는 도움을 주지만, 가중치 자체를 갱신하는 QLoRA만큼의 이득은 주지 못한다.",
+], size=13.5)
+
+# ============================================================ 11. 결론
+s = new_slide()
+sidebar(s, "결론", 11)
 masthead(s, "구조화는 이득이 있다 —\n모델 크기에 반비례하지 않는다", title_size=23)
 bullet_list(s, CONTENT_LEFT, Inches(1.95), CONTENT_W, [
     "H1 지지 — 인과 구조를 명시한 구조화 형식(R3/R4)이 자유서술보다 도메인 간 일반화에서 일관되게 우수하다 (18/18).",

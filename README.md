@@ -90,6 +90,13 @@ python src/run_eval_all.py --unified data/unified.jsonl --adapters-dir adapters 
 - R2가 R0보다도 낮게 나오는 것은 자유서술에서 정확한 문자열을 복원하는 채점 파싱의 한계가
   섞인 결과이며, 논문 Limitations에 명시한다.
 
+**부가 실험 — RAG vs QLoRA** ([`research-project/reports/rag_results.csv`](research-project/reports/rag_results.csv)):
+파인튜닝 없이 학습 도메인 문서 + R3 교사 출력을 BM25로 검색해 k=3 few-shot으로 넣고 베이스 3B
+모델로 R3 형식을 흉내낸 결과, R2보다는 크게 낫지만(strict F1 forum→literature 38.65,
+literature→forum 11.57) QLoRA R3/R4에는 못 미치고 대체로 R0 수준에 머물렀다. 검색은
+가중치 갱신 없이도 형식을 어느 정도 흉내내게 해주지만, 구조화 형식에 맞춘 QLoRA 파인튜닝만큼의
+이득은 주지 못한다. `research-project/src/run_rag_eval.py`로 재현 가능.
+
 발표 자료: [`research-project/reports/presentation.pptx`](research-project/reports/presentation.pptx) ·
 [`presentation_script.md`](research-project/reports/presentation_script.md).
 조건별(R0/R2/R3/R4) 출력을 실시간으로 비교하는 데모는 `research-project/src/demo_app.py`로 실행한다

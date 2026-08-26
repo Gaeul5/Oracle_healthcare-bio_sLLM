@@ -1,0 +1,3 @@
+run_name,model_size,condition,train_domain,eval_domain,k,n_docs,strict_p,strict_r,strict_f1,relaxed_p,relaxed_r,relaxed_f1
+3b_RAG_forum,3b,RAG,forum,literature,3,400,31.11,51.02,38.65,47.21,77.41,58.65
+3b_RAG_literature,3b,RAG,literature,forum,3,400,24.18,7.61,11.57,40.43,12.72,19.35
