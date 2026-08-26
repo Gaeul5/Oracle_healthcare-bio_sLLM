@@ -54,13 +54,7 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from datasets import Dataset
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from formats import TASK, RULES, PROMPTS  # noqa: E402
-
-MODEL_IDS = {
-    "0.5b": "Qwen/Qwen2.5-0.5B-Instruct",
-    "1.5b": "Qwen/Qwen2.5-1.5B-Instruct",
-    "3b": "Qwen/Qwen2.5-3B-Instruct",
-}
+from prompts import MODEL_IDS, build_prompt  # noqa: E402
 
 # T4 16GB 기준 모델 크기별 기본 배치 설정. 필요시 CLI로 덮어쓴다.
 # gradient checkpointing 적용 후에도 Qwen2.5의 큰 vocab(~152k)이 fp32 loss
@@ -71,41 +65,6 @@ BATCH_DEFAULTS = {
     "1.5b": dict(per_device_train_batch_size=2, gradient_accumulation_steps=8),
     "3b": dict(per_device_train_batch_size=1, gradient_accumulation_steps=16),
 }
-
-R0_PROMPT = f"""{TASK}
-
-{RULES}
-List each adverse drug event on its own line, copied exactly from the text.
-If none are mentioned, output nothing.
-
-Text:
-{{text}}
-
-Output:"""
-
-R1_PROMPT = f"""{TASK}
-
-{RULES}
-For each adverse drug event, output one line in the form:
-<exact mention from the text> -> <standard SNOMED CT term>
-If no standard term applies, write "not normalized" after the arrow.
-If none are mentioned, output nothing.
-
-Text:
-{{text}}
-
-Output:"""
-
-
-def build_prompt(cond, text):
-    if cond == "R0":
-        return R0_PROMPT.format(text=text)
-    if cond == "R1":
-        return R1_PROMPT.format(text=text)
-    if cond in PROMPTS:
-        return PROMPTS[cond].format(text=text)
-    raise ValueError(f"알 수 없는 조건: {cond}")
-
 
 def build_target(cond, row, teacher_by_doc, sct_by_doc=None):
     if cond == "R0":

@@ -14,6 +14,9 @@
 # fold_assignment.csv는 doc_id만 담아 원문이 없으므로 커밋한다
 **/data/*.parquet
 
+# 학습된 어댑터(safetensors)는 용량이 커서 커밋하지 않는다 — 로컬/Drive에만 보관
+**/adapters/
+
 # 통계·집계만 커밋한다 (reports/)
 __pycache__/
 *.pyc
