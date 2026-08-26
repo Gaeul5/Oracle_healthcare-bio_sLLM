@@ -97,8 +97,8 @@ literature→forum 11.57) QLoRA R3/R4에는 못 미치고 대체로 R0 수준에
 가중치 갱신 없이도 형식을 어느 정도 흉내내게 해주지만, 구조화 형식에 맞춘 QLoRA 파인튜닝만큼의
 이득은 주지 못한다. `research-project/src/run_rag_eval.py`로 재현 가능.
 
-발표 자료: [`research-project/reports/presentation.pptx`](research-project/reports/presentation.pptx) ·
-[`presentation_script.md`](research-project/reports/presentation_script.md).
+발표 자료(11장, 재디자인 버전): [`research-project/reports/ADE_연구발표_v2.pptx`](research-project/reports/ADE_연구발표_v2.pptx) ·
+[`발표대본_v2.md`](research-project/reports/발표대본_v2.md) (데모 제외 약 9분 30초, 포함 약 11분).
 조건별(R0/R2/R3/R4) 출력을 실시간으로 비교하는 데모는 `research-project/src/demo_app.py`로 실행한다
 (GPU 세션에서 `python src/demo_app.py` — gradio 공개 링크 생성).
 
